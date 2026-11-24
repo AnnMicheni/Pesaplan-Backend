@@ -1,12 +1,15 @@
 
 package personal_finance_manager_backend.service;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import personal_finance_manager_backend.exception.EmailAlreadyExistsException;
 import personal_finance_manager_backend.exception.InvalidCredentialsException;
@@ -27,7 +30,6 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Register a new user
     public User registerUser(User user) {
 
         String email = user.getEmail().trim().toLowerCase(Locale.ROOT);
@@ -59,7 +61,6 @@ public class UserService {
         }
     }
 
-    // Log in an existing user
     public User loginUser(String email, String password) {
 
         String normalizedEmail =
@@ -71,6 +72,12 @@ public class UserService {
                                 "Invalid email or password."
                         )
                 );
+
+        if (!user.isActive()) {
+            throw new InvalidCredentialsException(
+                    "This account has been suspended."
+            );
+        }
 
         if (!passwordEncoder.matches(
                 password,
@@ -85,6 +92,25 @@ public class UserService {
     }
 
     public Optional<User> findUserByEmail(String email) {
-    return userRepository.findByEmail(email);
-}
+        return userRepository.findByEmail(email);
+    }
+
+    // Retrieve all users for administration
+    public List<User> findAllUsers() {
+        return userRepository.findAll();
+    }
+
+    // Suspend or activate a user
+    public void updateAccountStatus(Long id, boolean active) {
+
+        boolean updated =
+                userRepository.updateAccountStatus(id, active);
+
+        if (!updated) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "User not found."
+            );
+        }
+    }
 }

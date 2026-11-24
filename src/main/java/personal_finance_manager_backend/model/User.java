@@ -10,14 +10,14 @@ public class User {
     private String email;
     private String passwordHash;
     private String currencyPreference;
+    private String role;
+    private boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Default constructor
     public User() {
     }
 
-    // Constructor for creating a new user
     public User(String fullName, String email,
                 String passwordHash, String currencyPreference) {
         this.fullName = fullName;
@@ -25,8 +25,6 @@ public class User {
         this.passwordHash = passwordHash;
         this.currencyPreference = currencyPreference;
     }
-
-    // Getters and setters
 
     public Long getId() {
         return id;
@@ -66,6 +64,22 @@ public class User {
 
     public void setCurrencyPreference(String currencyPreference) {
         this.currencyPreference = currencyPreference;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public LocalDateTime getCreatedAt() {

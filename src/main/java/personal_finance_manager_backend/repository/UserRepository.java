@@ -16,7 +16,6 @@ public class UserRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    // Constructor
     public UserRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -29,7 +28,8 @@ public class UserRepository {
                 (full_name, email, password_hash, currency_preference)
                 VALUES (?, ?, ?, ?)
                 RETURNING id, full_name, email, password_hash,
-                          currency_preference, created_at, updated_at
+                          currency_preference, role, is_active,
+                          created_at, updated_at
                 """;
 
         return jdbcTemplate.queryForObject(
@@ -42,12 +42,13 @@ public class UserRepository {
         );
     }
 
-    // Find a user using their email
+    // Find a user using email
     public Optional<User> findByEmail(String email) {
 
         String sql = """
                 SELECT id, full_name, email, password_hash,
-                       currency_preference, created_at, updated_at
+                       currency_preference, role, is_active,
+                       created_at, updated_at
                 FROM users
                 WHERE email = ?
                 """;
@@ -65,7 +66,33 @@ public class UserRepository {
         return Optional.of(users.get(0));
     }
 
-    // Convert a database row into a Java User object
+    // Retrieve all users
+    public List<User> findAll() {
+
+        String sql = """
+                SELECT id, full_name, email, password_hash,
+                       currency_preference, role, is_active,
+                       created_at, updated_at
+                FROM users
+                ORDER BY id
+                """;
+
+        return jdbcTemplate.query(sql, userRowMapper);
+    }
+
+    // Suspend or activate an account
+    public boolean updateAccountStatus(Long id, boolean active) {
+
+        String sql = """
+                UPDATE users
+                SET is_active = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """;
+
+        return jdbcTemplate.update(sql, active, id) > 0;
+    }
+
+    // Convert database rows into User objects
     private final RowMapper<User> userRowMapper = (ResultSet rs, int rowNum) -> {
 
         User user = new User();
@@ -75,6 +102,8 @@ public class UserRepository {
         user.setEmail(rs.getString("email"));
         user.setPasswordHash(rs.getString("password_hash"));
         user.setCurrencyPreference(rs.getString("currency_preference"));
+        user.setRole(rs.getString("role"));
+        user.setActive(rs.getBoolean("is_active"));
         user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         user.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
 
