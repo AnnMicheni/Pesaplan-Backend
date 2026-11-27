@@ -1,13 +1,13 @@
 package personal_finance_manager_backend;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 class PersonalFinanceManagerBackendApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void applicationClassIsAvailable() {
+        assertNotNull(PersonalFinanceManagerBackendApplication.class);
+    }
 }

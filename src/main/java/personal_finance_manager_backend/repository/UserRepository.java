@@ -109,4 +109,15 @@ public class UserRepository {
 
         return user;
     };
+
+    public boolean updatePasswordHash(Long userId, String passwordHash) {
+    String sql = """
+            UPDATE users
+            SET password_hash = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """;
+
+    return jdbcTemplate.update(sql, passwordHash, userId) > 0;
 }
+}
+
