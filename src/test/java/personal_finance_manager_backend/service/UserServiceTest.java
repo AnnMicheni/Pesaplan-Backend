@@ -142,4 +142,20 @@ class UserServiceTest {
         assertThrows(org.springframework.web.server.ResponseStatusException.class,
                 () -> userService.updateAccountStatus(999L, false));
     }
+    @Test
+    void updateProfilePersistsNameAndUppercaseCurrency() {
+        User updated = new User("Updated Name", "test@example.com", "$2a$hashed-password", "KES");
+        updated.setId(10L);
+        when(userRepository.findByEmail("test@example.com"))
+                .thenReturn(Optional.of(activeUser), Optional.of(updated));
+        when(userRepository.updateProfile(10L, "Updated Name", "KES"))
+                .thenReturn(true);
+
+        User result = userService.updateProfile("test@example.com", " Updated Name ", "kes");
+
+        assertEquals("Updated Name", result.getFullName());
+        assertEquals("KES", result.getCurrencyPreference());
+        verify(userRepository).updateProfile(10L, "Updated Name", "KES");
+    }
+
 }

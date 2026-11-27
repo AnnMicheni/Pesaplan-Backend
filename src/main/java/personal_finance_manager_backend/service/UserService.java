@@ -113,4 +113,22 @@ public class UserService {
             );
         }
     }
+
+    public User updateProfile(String email, String fullName, String currencyPreference) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found."));
+
+        boolean updated = userRepository.updateProfile(
+                user.getId(), fullName.trim(),
+                currencyPreference.trim().toUpperCase(Locale.ROOT));
+
+        if (!updated) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found.");
+        }
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found."));
+    }
 }

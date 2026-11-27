@@ -1,4 +1,3 @@
-
 package personal_finance_manager_backend.security;
 
 import io.jsonwebtoken.Jwts;
@@ -13,43 +12,29 @@ import java.util.Date;
 
 @Service
 public class JwtService {
-
     private final SecretKey signingKey;
     private final long expirationMs;
 
-    public JwtService(
-            @Value("${security.jwt.secret}") String secret,
-            @Value("${security.jwt.expiration-ms}") long expirationMs) {
-
-        this.signingKey = Keys.hmacShaKeyFor(
-                Decoders.BASE64.decode(secret)
-        );
-
+    public JwtService(@Value("${security.jwt.secret}") String secret,
+                      @Value("${security.jwt.expiration-ms}") long expirationMs) {
+        this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
         this.expirationMs = expirationMs;
     }
 
-    // Generate a token for a user
     public String generateToken(String email) {
-
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationMs);
-
-        return Jwts.builder()
-                .subject(email)
-                .issuedAt(now)
-                .expiration(expiration)
-                .signWith(signingKey)
-                .compact();
+        return Jwts.builder().subject(email).issuedAt(now).expiration(expiration)
+                .signWith(signingKey).compact();
     }
 
-    // Extract the email from a token
     public String extractEmail(String token) {
+        return Jwts.parser().verifyWith(signingKey).build()
+                .parseSignedClaims(token).getPayload().getSubject();
+    }
 
-        return Jwts.parser()
-                .verifyWith(signingKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+    public Date extractExpiration(String token) {
+        return Jwts.parser().verifyWith(signingKey).build()
+                .parseSignedClaims(token).getPayload().getExpiration();
     }
 }

@@ -119,5 +119,14 @@ public class UserRepository {
 
     return jdbcTemplate.update(sql, passwordHash, userId) > 0;
 }
-}
 
+    // Update the signed-in user's editable profile fields
+    public boolean updateProfile(Long id, String fullName, String currencyPreference) {
+        String sql = """
+                UPDATE users
+                SET full_name = ?, currency_preference = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """;
+        return jdbcTemplate.update(sql, fullName, currencyPreference, id) > 0;
+    }
+}

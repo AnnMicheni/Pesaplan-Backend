@@ -11,10 +11,13 @@ import personal_finance_manager_backend.dto.ForgotPasswordRequest;
 import personal_finance_manager_backend.dto.ResetPasswordRequest;
 import personal_finance_manager_backend.model.User;
 import personal_finance_manager_backend.security.JwtService;
+import personal_finance_manager_backend.repository.TokenRevocationRepository;
 import personal_finance_manager_backend.service.PasswordResetService;
 import personal_finance_manager_backend.service.UserService;
 
 import java.util.Optional;
+import java.util.Date;
+import jakarta.servlet.http.HttpServletRequest;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -25,6 +28,7 @@ class AuthControllerTest {
     @Mock private UserService userService;
     @Mock private JwtService jwtService;
     @Mock private PasswordResetService passwordResetService;
+    @Mock private TokenRevocationRepository tokenRevocationRepository;
 
     @InjectMocks private AuthController authController;
 
@@ -62,4 +66,18 @@ class AuthControllerTest {
         assertEquals("Password reset successfully.", response.getBody().get("message"));
         verify(passwordResetService).resetPassword("valid-token", "NewPassword123");
     }
+    @Test
+    void logoutRevokesPresentedBearerTokenUntilExpiry() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        Date expiry = new Date(System.currentTimeMillis() + 60_000);
+        when(request.getHeader("Authorization")).thenReturn("Bearer valid.jwt.token");
+        when(jwtService.extractExpiration("valid.jwt.token")).thenReturn(expiry);
+
+        var response = authController.logout(request);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Logout successful.", response.getBody().get("message"));
+        verify(tokenRevocationRepository).revoke("valid.jwt.token", expiry);
+    }
+
 }
